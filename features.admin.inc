@@ -222,6 +222,15 @@ function features_export_build_form_submit($form, &$form_state) {
   if ($files = features_export_render($export, $module_name, TRUE)) {
     $filename = (!empty($export['version']) ? "{$module_name}-{$export['version']}" : $module_name) . '.tar';
 
+    // Give modules an opportunity to add files from files directory.
+    if ($add_files = features_export_files($export)) {
+      foreach ($add_files as $add_file) {
+        $add_file->add_file = TRUE; 
+        $extension = $add_file->basename;
+        $files[$extension] = $add_file;
+      }
+    } 
+
     // Clear out output buffer to remove any garbage from tar output.
     if (ob_get_level()) {
       ob_end_clean();
@@ -233,11 +242,23 @@ function features_export_build_form_submit($form, &$form_state) {
     $tar = array();
     $filenames = array();
     foreach ($files as $extension => $file_contents) {
-      if (!in_array($extension, array('module', 'info'))) {
+      if (!in_array($extension, array('module', 'info')) && !$file_contents->add_file) {
         $extension .= '.inc';
+      } 
+      if (in_array($extension, array('module', 'info')) || substr($extension, -3) == 'inc') {
+        $filenames[] = "{$module_name}.$extension";
+        print features_tar_create("{$module_name}/{$module_name}.$extension", $file_contents);
+      } else if ($file_contents->add_file) { 
+        $subdir = $file_contents->subdir;
+        $filename = ($subdir) ? "$subdir/{$module_name}.$extension" : "{$module_name}.$extension" ;
+        if (!in_array($filename, $filenames)) {
+          $filenames[] = $filename;
+          if ($contents = file_get_contents($file_contents->filename)) {
+            print features_tar_create("{$module_name}/{$filename}", $contents);
+            unset($contents);
+          }
+        } 
       }
-      $filenames[] = "{$module_name}.$extension";
-      print features_tar_create("{$module_name}/{$module_name}.$extension", $file_contents);
     }
     if (features_get_modules($module_name, TRUE)) {
       $module_path = drupal_get_path('module', $module_name);
@@ -258,6 +279,25 @@ function features_export_build_form_submit($form, &$form_state) {
     exit;
   }
 }
+
+/**
+ * Give modules/components a chance to add files
+ * from files directory. 
+ * 
+ * @param $export
+ *  Export array populated by features_populate().
+ *
+ * @return $addl_files
+ *  $files array, modified to include any additional files.
+ */
+function features_export_files($export) {
+  // Get additional files.
+  $add_files = array();
+  $add_files = module_invoke_all('features_files', $export);
+
+  return $add_files;  
+}
+
 
 /**
  * AHAH handler for features_export_form_build().
