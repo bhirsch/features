@@ -353,6 +353,9 @@ function hook_user_default_roles_alter(&$roles) {
  *  $export gives your module all the component information 
  *  find in a .info file. 
  *
+ * @param $module_name
+ *  String, name of features module. Use this to rename files: mymodule.filename.ext
+ *
  * @return $add_files
  *  Array. 
  *     $add_files[n]->name = 'name';

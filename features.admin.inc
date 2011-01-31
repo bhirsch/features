@@ -223,7 +223,7 @@ function features_export_build_form_submit($form, &$form_state) {
     $filename = (!empty($export['version']) ? "{$module_name}-{$export['version']}" : $module_name) . '.tar';
 
     // Give modules an opportunity to add files from files directory.
-    if ($add_files = features_export_files($export)) {
+    if ($add_files = features_export_files($export, $module_name)) {
       foreach ($add_files as $add_file) {
         $add_file->add_file = TRUE; 
         $extension = $add_file->basename;
@@ -250,7 +250,7 @@ function features_export_build_form_submit($form, &$form_state) {
         print features_tar_create("{$module_name}/{$module_name}.$extension", $file_contents);
       } else if ($file_contents->add_file) { 
         $subdir = $file_contents->subdir;
-        $filename = ($subdir) ? "$subdir/{$module_name}.$extension" : "{$module_name}.$extension" ;
+        $filename = ($subdir) ? "$subdir/$extension" : "$extension" ;
         if (!in_array($filename, $filenames)) {
           $filenames[] = $filename;
           if ($contents = file_get_contents($file_contents->filename)) {
@@ -286,14 +286,17 @@ function features_export_build_form_submit($form, &$form_state) {
  * 
  * @param $export
  *  Export array populated by features_populate().
+ * 
+ * @param $module_name
+ *  String. Name of features module being created.
  *
  * @return $addl_files
  *  $files array, modified to include any additional files.
  */
-function features_export_files($export) {
+function features_export_files($export, $module_name) {
   // Get additional files.
   $add_files = array();
-  $add_files = module_invoke_all('features_files', $export);
+  $add_files = module_invoke_all('features_files', $export, $module_name);
 
   return $add_files;  
 }
