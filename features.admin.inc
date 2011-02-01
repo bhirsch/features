@@ -281,28 +281,6 @@ function features_export_build_form_submit($form, &$form_state) {
 }
 
 /**
- * Give modules/components a chance to add files
- * from files directory. 
- * 
- * @param $export
- *  Export array populated by features_populate().
- * 
- * @param $module_name
- *  String. Name of features module being created.
- *
- * @return $addl_files
- *  $files array, modified to include any additional files.
- */
-function features_export_files($export, $module_name) {
-  // Get additional files.
-  $add_files = array();
-  $add_files = module_invoke_all('features_files', $export, $module_name);
-
-  return $add_files;  
-}
-
-
-/**
  * AHAH handler for features_export_form_build().
  */
 function features_export_build_form_populate() {
