@@ -354,7 +354,8 @@ function hook_user_default_roles_alter(&$roles) {
  *  find in a .info file. 
  *
  * @param $module_name
- *  String, name of features module. Use this to rename files: mymodule.filename.ext
+ *  String, name of features module being created. 
+ *  This can be helpful for naming conventions like mymodule.mycomponent.ext.
  *
  * @return $add_files
  *  Array. 
