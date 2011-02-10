@@ -362,11 +362,6 @@ function hook_user_default_roles_alter(&$roles) {
  *     $add_files[n]->basename = 'name.ext';
  *     $add_files[n]->filename = 'path/to/file/name.ext';
  *     $add_files[n]->subdir = subdirectory/inside/features/module
- * 
- * Features will rename files like this: 
- *  mymodule.name.extension 
- * for example, a feature module named blog with a .jpg called headshot: 
- *  blog.headshot.jpg
  */
 function hook_features_files($export) {
   $add_files = array();
