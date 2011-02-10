@@ -363,7 +363,7 @@ function hook_user_default_roles_alter(&$roles) {
  *     $add_files[n]->filename = 'path/to/file/name.ext';
  *     $add_files[n]->subdir = subdirectory/inside/features/module
  */
-function hook_features_files($export) {
+function hook_features_files($export, $module_name) {
   $add_files = array();
   if ($mycomponents = $export['features']['mycomponent']) {
     // Get files for each component. 
