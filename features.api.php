@@ -36,6 +36,10 @@
  *
  *   'features_source': Boolean value for whether this component should be
  *   offered as an option on the initial feature creation form.
+ *
+ *   'base': Optional. An alternative base key to use when calling features
+ *   hooks for this component. Can be used for features component types that
+ *   are declared "dynamically" or are part of a family of components.
  */
 function hook_features_api() {
   return array(
@@ -232,10 +236,8 @@ function hook_features_export_alter(&$export, $module_name) {
  * @param array &$export
  *   By reference. An array of all components to be exported with a given
  *   feature.
- * @param string $module_name
- *   The name of the feature module to be generated.
  */
-function hook_features_pipe_component_alter(&$pipe, $data, $export, $module_name) {
+function hook_features_pipe_component_alter(&$pipe, $data, $export) {
 }
 
 /**
@@ -341,41 +343,3 @@ function hook_user_default_roles_alter(&$roles) {
 /**
  * @}
  */
-
-/**
- * Add additional files to feature module. For example,
- * image files uploaded to the files directory through 
- * Drupal's web interface, or CSS files written to the 
- * files directory by your module.
- * 
- * @param $export
- *  Export array populated by features_populate().
- *  $export gives your module all the component information 
- *  find in a .info file. 
- *
- * @param $module_name
- *  String, name of features module being created. 
- *  This can be helpful for naming conventions like mymodule.mycomponent.ext.
- *
- * @return $add_files
- *  Array. 
- *     $add_files[n]->name = 'name';
- *     $add_files[n]->basename = 'name.ext';
- *     $add_files[n]->filename = 'path/to/file/name.ext';
- *     $add_files[n]->subdir = subdirectory/inside/features/module
- */
-function hook_features_files($export, $module_name) {
-  $add_files = array();
-  if ($mycomponents = $export['features']['mycomponent']) {
-    // Get files for each component. 
-    foreach ($mycomponents as $name) {
-      // Get selector's CSS file
-      $add_files[$i]->name = $name;
-      $add_files[$i]->basename = $name .'.css'; 
-      $add_files[$i]->filename = file_directory_path() .'/mymodule/'. $name .'.css';
-      $add_files[$i]->subdir = 'css';
-      $i++;
-    }
-  }
-  return $add_files;
-}

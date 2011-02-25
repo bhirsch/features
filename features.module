@@ -1,5 +1,5 @@
 <?php
-// $Id: features.module,v 1.1.2.79 2010/08/05 20:50:03 yhahn Exp $
+// $Id: features.module,v 1.1.2.63.2.12 2010/09/29 17:48:25 yhahn Exp $
 
 /**
  * @file
@@ -58,11 +58,11 @@ define('FEATURES_DUPLICATES_CONFLICT', 0);
 define('FEATURES_DUPLICATES_ALLOWED', 1);
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function features_menu() {
   $items = array();
-  $items['admin/build/features'] = array(
+  $items['admin/structure/features'] = array(
     'title' => 'Features',
     'description' => 'Manage features.',
     'page callback' => 'drupal_get_form',
@@ -70,7 +70,7 @@ function features_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'features.admin.inc',
   );
-  $items['admin/build/features/cleanup'] = array(
+  $items['admin/structure/features/cleanup'] = array(
     'title' => 'Cleanup',
     'description' => 'Detect and disable any orphaned feature dependencies.',
     'page callback' => 'drupal_get_form',
@@ -79,7 +79,7 @@ function features_menu() {
     'file' => 'features.admin.inc',
     'weight' => 1,
   );
-  $items['admin/build/features/manage'] = array(
+  $items['admin/structure/features/manage'] = array(
     'title' => 'Manage',
     'description' => 'Enable and disable features.',
     'page callback' => 'drupal_get_form',
@@ -87,7 +87,7 @@ function features_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file' => 'features.admin.inc',
   );
-  $items['admin/build/features/create'] = array(
+  $items['admin/structure/features/create'] = array(
     'title' => 'Create feature',
     'description' => 'Create a new feature.',
     'page callback' => 'drupal_get_form',
@@ -98,28 +98,20 @@ function features_menu() {
     'file' => "features.admin.inc",
     'weight' => 10,
   );
-  $items['admin/build/features/export/populate'] = array(
-    'title' => 'Populate feature',
-    'description' => 'AHAH callback to populate a feature from selected components.',
-    'page callback' => 'features_export_build_form_populate',
-    'page arguments' => array(),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer features'),
-    'type' => MENU_CALLBACK,
-    'file' => "features.admin.inc",
-  );
-  $items['admin/build/features/%feature'] = array(
+
+  $items['admin/structure/features/%feature'] = array(
     'title callback' => 'features_get_feature_title',
     'title arguments' => array(3),
     'description' => 'Display components of a feature.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('features_admin_components', 3),
+    'load arguments' => array(3, TRUE),
     'access callback' => 'user_access',
     'access arguments' => array('administer features'),
     'type' => MENU_CALLBACK,
     'file' => 'features.admin.inc',
   );
-  $items['admin/build/features/%feature/view'] = array(
+  $items['admin/structure/features/%feature/view'] = array(
     'title' => 'View',
     'description' => 'Display components of a feature.',
     'access callback' => 'user_access',
@@ -127,11 +119,12 @@ function features_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  $items['admin/build/features/%feature/recreate'] = array(
+  $items['admin/structure/features/%feature/recreate'] = array(
     'title' => 'Recreate',
     'description' => 'Recreate an existing feature.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('features_export_form', 3),
+    'load arguments' => array(3, TRUE),
     'access callback' => 'user_access',
     'access arguments' => array('administer features'),
     'type' => MENU_LOCAL_TASK,
@@ -139,22 +132,24 @@ function features_menu() {
     'weight' => 11,
   );
   if (module_exists('diff')) {
-    $items['admin/build/features/%feature/diff'] = array(
+    $items['admin/structure/features/%feature/diff'] = array(
       'title' => 'Review overrides',
       'description' => 'Compare default and current feature.',
       'page callback' => 'features_feature_diff',
       'page arguments' => array(3, 5),
+      'load arguments' => array(3, TRUE),
       'access callback' => 'features_access_override_actions',
       'access arguments' => array(3),
       'type' => MENU_LOCAL_TASK,
       'file' => 'features.admin.inc',
     );
   }
-  $items['admin/build/features/%feature/status'] = array(
+  $items['admin/structure/features/%feature/status'] = array(
     'title' => 'Status',
     'description' => 'Javascript status call back.',
     'page callback' => 'features_feature_status',
     'page arguments' => array(3),
+    'load arguments' => array(3, TRUE),
     'access callback' => 'user_access',
     'access arguments' => array('administer features'),
     'type' => MENU_CALLBACK,
@@ -170,40 +165,53 @@ function features_menu() {
 }
 
 /**
- *  Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function features_theme() {
   $base = array(
-    'path' => drupal_get_path('module', 'features') .'/theme',
+    'path' => drupal_get_path('module', 'features') . '/theme',
     'file' => 'theme.inc',
   );
 
   $items = array();
-  $items['features_components'] =
-  $items['features_component_key'] =
-  $items['features_component_list'] =
-  $items['features_form_buttons'] =
-  $items['features_form_components'] =
-  $items['features_form_export'] =
-  $items['features_form_package'] =
-  $items['features_module_status'] =
-  $items['features_storage_link'] = $base;
-
-  $items['features_admin_components'] = array(
-    'arguments' => array('form' => NULL),
-    'template' => 'features-admin-components',
+  $items['features_module_status'] = array(
+    'variables' => array('module' => null, 'status' => null)
   ) + $base;
 
-  $items['features_form'] = array(
-    'arguments' => array('form' => NULL),
-    'template' => 'features-form',
+  $items['features_components'] = array(
+    'variables' => array('info' => null, 'sources' => null),
+  ) + $base;
+
+  $items['features_component_key'] = $base;
+  $items['features_component_list'] = array(
+    'variables' => array('components' => array(), 'source' => array(), 'conflicts' => array()),
+  ) + $base;
+
+  $items['features_storage_link'] = array(
+    'variables' => array('storage' => null, 'path' => null, 'options' => array()),
+  ) + $base;
+
+  $items['features_form_components'] =
+  $items['features_form_export'] =
+  $items['features_form_package'] = array(
+    'render element' => 'form',
+  ) + $base;
+
+  $items['features_form_buttons'] = array(
+    'render element' => 'element',
+  ) + $base;
+
+
+  $items['features_admin_components'] = array(
+    'render element' => 'form',
+    'template' => 'features-admin-components',
   ) + $base;
 
   return $items;
 }
 
 /**
- * Implementation of hook_flush_caches().
+ * Implements hook_flush_caches().
  */
 function features_flush_caches() {
   features_rebuild();
@@ -212,36 +220,33 @@ function features_flush_caches() {
 }
 
 /**
- * Implementation of hook_form().
+ * Implements hook_form().
  */
 function features_form($node, $form_state) {
   return node_content_form($node, $form_state);
 }
 
 /**
- * Implemenation of hook_access()
+ * Implemenation of hook_node_access()
  */
-function features_access($op, $node, $account) {
-  return node_content_access($op, $node, $account);
+function features_node_access($node, $op, $account) {
+  return node_node_access($node, $op, $account);
 }
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_permission().
  */
-function features_perm() {
-  $perms = array('administer features', 'manage features');
-  // Generate permissions for any default node types provided by features.
-  foreach (node_get_types() as $type) {
-    if ($type->module == 'features') {
-      $name = check_plain($type->type);
-      $perms[] = 'create '. $name .' content';
-      $perms[] = 'delete own '. $name .' content';
-      $perms[] = 'delete any '. $name .' content';
-      $perms[] = 'edit own '. $name .' content';
-      $perms[] = 'edit any '. $name .' content';
-    }
-  }
-  return $perms;
+function features_permission() {
+  return array(
+    'administer features' => array(
+      'title' => t('Administer features'),
+      'description' => t('Perform administration tasks on features.'),
+    ),
+    'manage features' => array(
+      'title' => t('Manage features'),
+      'description' => t('View, enable and disable features.'),
+    ),
+  );
 }
 
 /**
@@ -271,7 +276,7 @@ function features_include($reset = FALSE) {
       $info = module_invoke($module, 'features_api');
       foreach ($info as $component) {
         if (isset($component['file'])) {
-          require_once $component['file'];
+          require_once DRUPAL_ROOT . '/' . $component['file'];
         }
       }
     }
@@ -279,7 +284,7 @@ function features_include($reset = FALSE) {
     // Features provides integration on behalf of these modules.
     // The features include provides handling for the feature dependencies.
     // Note that ctools is placed last because it implements hooks "dynamically" for other modules.
-    $modules = array('features', 'block', 'content', 'context', 'fieldgroup', 'filter', 'imagecache', 'menu', 'node', 'taxonomy', 'user', 'views', 'ctools');
+    $modules = array('features', 'block', 'context', 'field', 'filter', 'image', 'menu', 'node', 'taxonomy', 'user', 'views', 'ctools');
 
     foreach (array_filter($modules, 'module_exists') as $module) {
       if (!module_hook($module, 'features_api')) {
@@ -395,44 +400,33 @@ function features_get_components($feature_source = FALSE, $reset = FALSE) {
 }
 
 /**
- * Like module_invoke() but for arbitrary callback base names.
+ * Invoke a component callback.
  */
-function features_invoke() {
+function features_invoke($component, $callback) {
   $args = func_get_args();
-  $base = $args[0];
-  $hook = $args[1];
   unset($args[0], $args[1]);
-  $function = $base .'_'. $hook;
-  if (features_hook($base, $hook)) {
+  // Append the component name to the arguments.
+  $args[] = $component;
+  if ($function = features_hook($component, $callback)) {
     return call_user_func_array($function, $args);
   }
 }
 
 /**
- * Like module_invoke_all() but for arbitrary callback base names.
+ * Checks whether a component implements the given hook.
+ *
+ * @return
+ *   The function implementing the hook, or FALSE.
  */
-function features_invoke_all() {
-  $args = func_get_args();
-  $hook = $args[0];
-  unset($args[0]);
-  $return = array();
-  foreach (features_get_components() as $component => $info) {
-    $result = features_invoke($component, $hook);
-    if (isset($result) && is_array($result)) {
-      $return = array_merge_recursive($return, $result);
-    }
-    else if (isset($result)) {
-      $return[] = $result;
-    }
-  }
-  return $return;
-}
+function features_hook($component, $hook, $reset = FALSE) {
+  $info = &drupal_static(__FUNCTION__);
 
-/**
- * Like module_hook() but for arbitrary callback base names.
- */
-function features_hook($base, $hook) {
-  return function_exists($base .'_'. $hook);
+  if (!isset($info) || $reset) {
+    $info = module_invoke_all('features_api');
+  }
+  // Determine the function callback base.
+  $base = isset($info[$component]['base']) ? $info[$component]['base'] : $component;
+  return function_exists($base . '_' . $hook) ? $base . '_' . $hook : FALSE;
 }
 
 /**
@@ -447,7 +441,7 @@ function features_hook($base, $hook) {
  */
 function features_install_modules($modules) {
   module_load_include('inc', 'features', 'features.export');
-  $files = module_rebuild_cache();
+  $files = system_rebuild_module_data();
 
   // Build maximal list of dependencies.
   $install = array();
@@ -467,8 +461,8 @@ function features_install_modules($modules) {
   if (!empty($install)) {
     // Make sure the install API is available.
     $install = array_unique($install);
-    include_once './includes/install.inc';
-    drupal_install_modules($install);
+    include_once DRUPAL_ROOT . '/' . './includes/install.inc';
+    module_enable($install);
   }
 }
 
@@ -491,23 +485,18 @@ function features_get_info($type = 'module', $name = NULL, $reset = FALSE) {
   if (empty($cache) || $reset) {
     $data = array();
     $ignored = variable_get('features_ignored_orphans', array());
-    $result = db_query("SELECT filename, name, type, status, throttle, schema_version FROM {system} WHERE type = 'module' ORDER BY name ASC");
-    while ($row = db_fetch_object($result)) {
+    $result = system_rebuild_module_data();
+    foreach ($result as $row) {
       // If module is no longer enabled, remove it from the ignored orphans list.
       if (in_array($row->name, $ignored, TRUE) && !$row->status) {
         $key = array_search($row->name, $ignored, TRUE);
         unset($ignored[$key]);
       }
 
-      // Parse and allow modules to alter the info file if necessary.
-      $row->info = drupal_parse_info_file(dirname($row->filename) .'/'. $row->name .'.info');
-      if (!empty($row->info)) {
-        drupal_alter('system_info', $row->info, $row);
-        if (!empty($row->info['features'])) {
-          $data['feature'][$row->name] = $row;
-        }
-        $data['module'][$row->name] = $row;
+      if (!empty($row->info['features'])) {
+        $data['feature'][$row->name] = $row;
       }
+      $data['module'][$row->name] = $row;
     }
     variable_set('features_ignored_orphans', $ignored);
     cache_set("features_module_info", $data);
@@ -515,7 +504,7 @@ function features_get_info($type = 'module', $name = NULL, $reset = FALSE) {
     $cache->data = $data;
   }
   if (!empty($name)) {
-    return !empty($cache->data[$type][$name]) ? $cache->data[$type][$name] : FALSE;
+    return !empty($cache->data[$type][$name]) ? $cache->data[$type][$name] : array();
   }
   return !empty($cache->data[$type]) ? $cache->data[$type] : array();
 }
@@ -576,18 +565,21 @@ function features_get_conflicts($reset = FALSE) {
   $map = features_get_component_map(NULL, $reset);
 
   foreach ($map as $type => $components) {
-    foreach ($components as $component => $modules) {
-      if (isset($component_info[$type]['duplicates']) && $component_info[$type]['duplicates'] == FEATURES_DUPLICATES_ALLOWED) {
-        continue;
-      }
-      else if (count($modules) > 1) {
-        foreach ($modules as $module) {
-          if (!isset($conflicts[$module])) {
-            $conflicts[$module] = array();
-          }
-          foreach ($modules as $m) {
-            if ($m != $module) {
-              $conflicts[$module][$m][$type][] = $component;
+    // Only check conflicts for components we know about.
+    if (isset($component_info[$type])) {
+      foreach ($components as $component => $modules) {
+        if (isset($component_info[$type]['duplicates']) && $component_info[$type]['duplicates'] == FEATURES_DUPLICATES_ALLOWED) {
+          continue;
+        }
+        else if (count($modules) > 1) {
+          foreach ($modules as $module) {
+            if (!isset($conflicts[$module])) {
+              $conflicts[$module] = array();
+            }
+            foreach ($modules as $m) {
+              if ($m != $module) {
+                $conflicts[$module][$m][$type][] = $component;
+              }
             }
           }
         }
@@ -666,7 +658,7 @@ function features_access_override_actions($feature) {
 }
 
 /**
- * Implementation of hook_form_alter() for system_modules form.
+ * Implements hook_form_alter() for system_modules form().
  */
 function features_form_system_modules_alter(&$form) {
   features_rebuild();
@@ -676,14 +668,6 @@ function features_form_system_modules_alter(&$form) {
  * Restore the specified modules to the default state.
  */
 function _features_restore($op, $items = array()) {
-  // Since we can't ensure that users will run update.php immediately after
-  // updating the features codebase, we must check the schema version explicitly
-  // to ensure that we will not blow away any overrides.
-  module_load_install('features');
-  if (drupal_get_installed_schema_version('features', TRUE) < 6101) {
-    return;
-  }
-
   module_load_include('inc', 'features', 'features.export');
   features_include();
 
@@ -747,21 +731,6 @@ function features_rebuild($rebuild = array()) {
  */
 
 /**
- * Represent the current state of permissions as a role name to role/perm array.
- */
-function _features_get_roles() {
-  $roles = array();
-  $result = db_query("SELECT r.rid, r.name, p.perm FROM {role} r LEFT JOIN {permission} p ON r.rid = p.rid");
-  while ($row = db_fetch_object($result)) {
-    $roles[$row->name] = array(
-      'rid' => $row->rid,
-      'perm' => explode(', ', $row->perm),
-    );
-  }
-  return $roles;
-}
-
-/**
  * Log a message, environment agnostic.
  *
  * @param $message
@@ -786,10 +755,11 @@ function features_log($message, $severity = 'status') {
 }
 
 /**
- * Targeted form_alter for vocabulary edit pages.
+ * Implements hook_hook_info().
  */
-function features_form_taxonomy_form_vocabulary_alter(&$form, &$form_state) {
-  module_load_include('inc', 'features', "includes/features.taxonomy");
-  _features_form_taxonomy_form_vocabulary_alter($form, $form_state);
+function features_hook_info() {
+  $hooks['features_api'] = array(
+    'group' => 'features',
+  );
+  return $hooks;
 }
-

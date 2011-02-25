@@ -1,5 +1,5 @@
 <?php
-// $Id: features-admin-components.tpl.php,v 1.1.2.3 2010/06/30 22:57:47 yhahn Exp $
+// $Id: features-admin-components.tpl.php,v 1.1.2.2.2.2 2010/09/09 18:13:05 yhahn Exp $
 ?>
 <div class='clear-block features-components'>
   <div class='column'>
@@ -20,5 +20,5 @@
       <?php endif; ?>
     </div>
   </div>
-  <?php print $form ?>
+  <?php print drupal_render_children($form) ?>
 </div>

@@ -1,5 +1,5 @@
 <?php
-// $Id: features.features.inc,v 1.1.2.2 2010/08/20 14:51:59 yhahn Exp $
+// $Id: features.features.inc,v 1.1.4.2 2010/09/10 16:50:14 yhahn Exp $
 
 /**
  * Implementation of hook_features_api().

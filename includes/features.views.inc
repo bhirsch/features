@@ -1,5 +1,5 @@
 <?php
-// $Id: features.views.inc,v 1.1.2.26 2010/08/19 16:32:58 yhahn Exp $
+// $Id: features.views.inc,v 1.1.2.16.2.2 2010/09/09 18:13:05 yhahn Exp $
 
 /**
  * Implementation of hook_features_export().

@@ -1,5 +1,5 @@
 <?php
-// $Id: features.drush.inc,v 1.1.2.34 2010/07/29 23:47:48 yhahn Exp $
+// $Id: features.drush.inc,v 1.1.2.21.2.3 2011/02/12 19:35:45 inadarei Exp $
 
 /**
  * @file
@@ -249,38 +249,11 @@ function _drush_features_export($stub, $dependencies, $module_name = NULL, $dire
         $export['name'] = $module_name;
       }
       $files = features_export_render($export, $module_name, TRUE);
-
-      // Give modules an opportunity to add files from files directory.
-      if ($add_files = features_export_files($export, $module_name)) {
-        foreach ($add_files as $add_file) {
-          $add_file->add_file = TRUE; 
-          $extension = $add_file->basename;
-          $files[$extension] = $add_file;
-        }
-      } 
-
       foreach ($files as $extension => $file_contents) {
-        if (!in_array($extension, array('module', 'info')) && !$file_contents->add_file) {
+        if (!in_array($extension, array('module', 'info'))) {
           $extension .= '.inc';
         }
-        if (in_array($extension, array('module', 'info')) || substr($extension, -3) == 'inc') {
-          drush_op('file_put_contents', "{$directory}/{$module_name}.$extension", $file_contents);
-        } else if ($file_contents->add_file) { 
-          $subdir = $file_contents->subdir;
-          if ($subdir) {
-            $filename = $subdir .'/'. $extension; 
-            drush_op('mkdir', "$directory/images", 0755);
-            drush_op('mkdir', "$directory/$subdir", 0755);
-          } else {
-            $filename = $extension;
-          }
-          if (drush_op('file_exists', $file_contents->filename)) {
-           if ($contents = drush_op('file_get_contents', $file_contents->filename)) {
-             drush_op('file_put_contents', "{$directory}/$filename", $contents);
-             unset($contents);
-           }
-          }
-        }
+        drush_op('file_put_contents', "{$directory}/{$module_name}.$extension", $file_contents);
       }
       drush_log(dt("Created module: !module in !directory", array('!module' => $module_name, '!directory' => $directory)), 'ok');
     }
@@ -397,7 +370,7 @@ function drush_features_diff() {
     drush_log(dt('Feature is in its default state. No diff needed.'), 'ok');
     return;
   }
-  module_load_include('php', 'diff', 'DiffEngine');
+  module_load_include('inc', 'diff', 'diff.engine');
 
   if (!class_exists('DiffFormatter')) {
     if (drush_confirm(dt('It seems that the Diff module is not available. Would you like to download and enable it?'))) {
@@ -414,8 +387,8 @@ function drush_features_diff() {
     else {
       return drush_set_error(dt('Diff module is not enabled.'));
     }
-    // If we're still here, now we can include the DiffEngine again.
-    module_load_include('php', 'diff', 'DiffEngine');
+    // If we're still here, now we can include the diff.engine again.
+    module_load_include('inc', 'diff', 'diff.engine');
   }
 
   $formatter = new DiffFormatter();
