@@ -249,11 +249,37 @@ function _drush_features_export($stub, $dependencies, $module_name = NULL, $dire
         $export['name'] = $module_name;
       }
       $files = features_export_render($export, $module_name, TRUE);
+
+      // Give modules an opportunity to add files from files directory.
+      if ($add_files = features_export_files($export, $module_name)) {
+        foreach ($add_files as $add_file) {
+          $add_file->add_file = TRUE; 
+          $extension = $add_file->filename;
+          $files[$extension] = $add_file;
+        }
+      } 
+
       foreach ($files as $extension => $file_contents) {
-        if (!in_array($extension, array('module', 'info'))) {
+        if (!in_array($extension, array('module', 'info')) && !$file_contents->add_file) {
           $extension .= '.inc';
         }
-        drush_op('file_put_contents', "{$directory}/{$module_name}.$extension", $file_contents);
+        if (in_array($extension, array('module', 'info')) || substr($extension, -3) == 'inc') {
+          drush_op('file_put_contents', "{$directory}/{$module_name}.$extension", $file_contents);
+        } else if ($file_contents->add_file) { 
+          $subdir = $file_contents->subdir;
+          if ($subdir) {
+            $filename = $subdir .'/'. $extension; 
+            drush_op('mkdir', "$directory/$subdir", 0755);
+          } else {
+            $filename = $extension;
+          }
+          if (drush_op('file_exists', $file_contents->uri)) {
+           if ($contents = drush_op('file_get_contents', $file_contents->uri)) {
+             drush_op('file_put_contents', "{$directory}/$filename", $contents);
+             unset($contents);
+           }
+          }
+        }
       }
       drush_log(dt("Created module: !module in !directory", array('!module' => $module_name, '!directory' => $directory)), 'ok');
     }
