@@ -256,6 +256,25 @@ function features_export_render($export, $module_name, $reset = FALSE) {
 }
 
 /**
+ * Give modules/components a chance to add files from files directory. 
+ * 
+ * @param $export
+ *  An exported feature definition.
+ * @param $module_name
+ *  The name of the module to be exported.
+ *
+ * @return $files array, with file names and paths of additional files.
+ */
+function features_export_files($export, $module_name) {
+  // Get additional files.
+  $add_files = array();
+  $add_files = module_invoke_all('features_files', $export, $module_name);
+
+  return $add_files;  
+}
+
+
+/**
  * Detect differences between DB and code components of a feature.
  */
 function features_detect_overrides($module) {
