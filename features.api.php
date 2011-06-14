@@ -343,3 +343,43 @@ function hook_user_default_roles_alter(&$roles) {
 /**
  * @}
  */
+
+/**
+ * Add additional files to feature module. For example,
+ * image files uploaded to the files directory through
+ * Drupal's web interface, or CSS files written to the
+ * files directory by your module.
+ *
+ * @param $export
+ *  Export array populated by features_populate().
+ *  $export gives your module all the component information
+ *  find in a .info file.
+ *
+ * @param $module_name
+ *  String, name of features module being created.
+ *  This can be helpful for naming conventions like mymodule.mycomponent.ext.
+ *
+ * @return $add_files
+ *  Array.
+ *     $add_files[n]->name = 'name';
+ *     $add_files[n]->filename = 'name.ext';
+ *     $add_files[n]->uri = 'path/to/file/name.ext';
+ *     $add_files[n]->subdir = subdirectory/inside/features/module
+ */
+function hook_features_files($export, $module_name) {
+  $add_files = array();
+  if ($mycomponents = $export['features']['mycomponent']) {
+    // Get files for each component.
+    foreach ($mycomponents as $name) {
+      $public = new DrupalPublicStreamWrapper;
+      $files_directory = $public->getDirectoryPath();
+      // Get selector's CSS file
+      $add_files[$i]->name = $name;
+      $add_files[$i]->filename = $name .'.css';
+      $add_files[$i]->uri = $files_directory .'/mymodule/'. $name .'.css';
+      $add_files[$i]->subdir = 'mydirectory';
+      $i++;
+    }
+  }
+  return $add_files;
+}
